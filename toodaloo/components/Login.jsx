@@ -56,11 +56,14 @@ export default function Login({ navigation }) {
             <View
                 style={{
                     display: "flex",
-                    marginVertical: 150,
+                    marginVertical: 10,
                 }}
             >
-                {/* <Image>TODO: LOGO</Image> */}
-            </View>
+                <Image 
+                    style={{ width: 350, height: 350, resizeMode: "contain" }}
+                    source={require('../assets/toodaloo.png')}
+                />
+             </View>
             <MyTextInput
                 placeholder={"Email"}
                 autoCapitalize={"none"}

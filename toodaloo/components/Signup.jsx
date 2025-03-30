@@ -80,10 +80,13 @@ export default function Signup({ navigation }) {
             <View
                 style={{
                     display: "flex",
-                    marginVertical: 150,
+                    marginVertical: -25,
                 }}
             >
-                {/* <Image>TODO: LOGO</Image> */}
+                <Image 
+                    style={{ width: 350, height: 350, resizeMode: "contain" }}
+                    source={require('../assets/toodaloo.png')}
+                />
             </View>
             <MyTextInput
                 placeholder={"Name"}
