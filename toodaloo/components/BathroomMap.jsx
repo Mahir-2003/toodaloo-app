@@ -8,7 +8,7 @@ import { getUserPreferences } from "../utils/userPreferences";
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export default function BathroomMap() {
+export default function BathroomMap({ navigation }) {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   //dont worry these are random coordinates
@@ -158,6 +158,10 @@ export default function BathroomMap() {
 
     try {
       const coordinatesUrl = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${userCoords.latitude}&lng=${userCoords.longitude}&radius=10&page=1&per_page=10`;
+      // for later maybe
+      // const advCoordinatesUrl = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${userCoords.latitude}&lng=${userCoords.longitude}&radius=10&page=1&per_page=10&
+      // wheelchair_param=${filters.accessible ? 1 : 0}&changing_table_param=${filters.changing_table ? 1 : 0}&unisex_param=${filters.unisex ? 1 : 0}`;
+
       const coordinates_resp = await fetch(coordinatesUrl, { headers });
 
       if (!coordinates_resp.ok) {
@@ -360,15 +364,16 @@ export default function BathroomMap() {
             showsVerticalScrollIndicator={true}
           >
             {filteredBathrooms.slice(0, 8).map((bathroom) => (
-              <View
+              <TouchableOpacity
                 key={`card-${bathroom.id}`}
                 style={styles.card}
+                onPress={() => navigation.navigate('BathroomCard', { bathroom })}
               >
                 <Text style={styles.cardTitle}>{bathroom.name}</Text>
                 {bathroom.distance !== null && (
                   <Text style={styles.infoText}>{bathroom.distance} miles away</Text>
                 )}
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         )}
