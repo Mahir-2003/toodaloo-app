@@ -61,9 +61,9 @@ export default function Signup({ navigation }) {
     useEffect(() => {
         auth.onAuthStateChanged((user) => {
             if (user) {
-                navigation.reset({ index: 0, routes: [{ name: "Map" }]});
+                navigation.reset({ index: 0, routes: [{ name: "Main" }]});
             } else {
-                console.log("NO USER - signup");
+                // console.log("NO USER - signup");
             }
         });
     }, []);
@@ -73,9 +73,8 @@ export default function Signup({ navigation }) {
             style={{ // TODO: for all styles, add color!
                 flex: 1,
                 alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "column",
                 justifyContent: "flex-start",
+                flexDirection: "column",
             }}
         >
             <View

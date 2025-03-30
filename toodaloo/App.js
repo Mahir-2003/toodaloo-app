@@ -1,20 +1,24 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-// import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import UserActivity from "../toodaloo/components/UserActivity";
-import Settings from "../toodaloo/components/Settings";
-import BathroomMap from "../toodaloo/components/BathroomMap";
-import TopNavbar from "../toodaloo/components/TopNavbar";
+import { createStackNavigator } from "@react-navigation/stack";
+import TopNavbar from "./components/TopNavbar";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Ionicons } from "@expo/vector-icons";
+
+const Stack = createStackNavigator();
 
 function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <TopNavbar></TopNavbar>
+        <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false}}>
+          <Stack.Screen name="Main" component={TopNavbar} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Signup" component={Signup} />
+        </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
   );

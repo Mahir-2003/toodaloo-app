@@ -25,7 +25,6 @@ export default function Login({ navigation }) {
             await signInWithEmailAndPassword(auth, email, password)
                 .then(async (userCredential) => {
                     const user = userCredential.user;
-                    console.log("LOGIN: ", user);
                 })
         } catch (error) {
             Alert.alert(error.code, error.message);
@@ -39,12 +38,11 @@ export default function Login({ navigation }) {
             if (user) {
                 navigation.reset({ index: 0, routes: [{ name: "Main" }] });
             } else {
-                console.log("NO USER"); // TODO: proper error message
+                // console.log("NO USER"); // TODO: proper error message
             }
         });
     }, []);
 
-    // TODO
     return (
         <SafeAreaView
             style={{ // TODO: for all styles, add color!

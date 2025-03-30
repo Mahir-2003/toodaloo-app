@@ -124,7 +124,7 @@ export const likeReview = async (reviewID) => {
     try {
         const reviewRef = doc(db, 'reviews', reviewID);
         await updateDoc(reviewRef, {
-            likes: increement(1)
+            likes: increment(1)
         });
     } catch (error) {
         console.log('Error liking review:', error);
@@ -137,7 +137,7 @@ export const dislikeReview = async (reviewID) => {
     try {
         const reviewRef = doc(db, 'reviews', reviewID);
         await updateDoc(reviewRef, {
-            dislikes: increment(1)
+            dislikes: decrement(1)
         });
     } catch (error) {
         console.log('Error disliking review', error);
