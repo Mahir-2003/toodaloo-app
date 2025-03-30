@@ -1,50 +1,73 @@
 import { useEffect, useState } from "react";
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../utils/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../utils/firebaseConfig";
+import { doc, setDoc } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MyButton } from "./MyButton";
 import { MyTextInput } from "./MyTextInput";
 import { Image } from "react-native";
 
-export default function Login({ navigation }) {
+export default function Signup({ navigation }) {
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = async () => {
-        if (email === '' || password === '') {
-            Alert.alert('Error', 'Please enter email and password');
+    const handleSignup = async () => {
+        if (email === '' || password === '' || name === '') {
+            Alert.alert('Error', 'Please fill in all fields');
             return;
         }
 
         setLoading(true);
         try {
-            await signInWithEmailAndPassword(auth, email, password)
-                .then(async (userCredential) => {
-                    const user = userCredential.user;
-                    console.log("LOGIN: ", user);
-                })
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+            const user = userCredential.user;
+
+            // initialize the reviews to empty list
+            const reviews = [];
+            // initialize preferences to all off at start
+            // user must change them later
+
+            // Initialize the user document with required structure
+            await setDoc(doc(db, "users", user.uid), {
+                email: email.toLowerCase().trim(),
+                uid: user.uid,
+                name: name.trim(),
+                reviews: [], // initialize the reviews to empty list
+                // initialize preferences to all off at start
+                // user can change them later
+                preferences: {
+                    'accessible': false,
+                    'changing_table': false,
+                    'unisex': false,
+                },
+                createdAt: new Date(),
+            });
         } catch (error) {
             Alert.alert(error.code, error.message);
         } finally {
             setLoading(false);
         }
     };
-
+    
     useEffect(() => {
         auth.onAuthStateChanged((user) => {
             if (user) {
-                navigation.reset({ index: 0, routes: [{ name: "Main" }] });
+                navigation.reset({ index: 0, routes: [{ name: "Map" }]});
             } else {
-                console.log("NO USER"); // TODO: proper error message
+                console.log("NO USER - signup");
             }
         });
     }, []);
 
-    // TODO
     return (
         <SafeAreaView
             style={{ // TODO: for all styles, add color!
@@ -64,6 +87,15 @@ export default function Login({ navigation }) {
                 {/* <Image>TODO: LOGO</Image> */}
             </View>
             <MyTextInput
+                placeholder={"Name"}
+                autoCapitalize={"words"}
+                value={name}
+                onChangeText={(e) => {
+                setName(e);
+                }}
+            />
+            <View style={{ marginBottom: 30 }} />
+            <MyTextInput
                 placeholder={"Email"}
                 autoCapitalize={"none"}
                 value={email}
@@ -71,7 +103,6 @@ export default function Login({ navigation }) {
                 setEmail(e);
                 }}
             />
-            <View />
             <View style={{ marginBottom: 30 }} />
             <View style={{ 
                 width: '80%', 
@@ -108,7 +139,7 @@ export default function Login({ navigation }) {
             <View style={{ marginBottom: 30 }} />
             <View style={{ flexDirection: "column", width: "80%" }}>
                 <MyButton
-                    text={loading ? 'Logging in...' : 'Log In'}
+                    text={loading ? 'Signing in...' : 'Sign In'}
                     style={{
                         width: "100%",
                         height: 40,
@@ -120,10 +151,10 @@ export default function Login({ navigation }) {
                     }}
                     textStyle={{color: "white", fontWeight: "600"}}
                     onPress={() => {
-                        handleLogin();
+                        handleSignup();
                     }}
                 />
-                <View style={{ marginBottom: 15 }} />
+                <View style={{ marginBottom: 10 }} />
                 <Text
                     style={{
                     fontSize: 14,
@@ -137,8 +168,11 @@ export default function Login({ navigation }) {
                     textShadowOffset: { width: 1, height: 1 },
                     textShadowRadius: 1
                     }}
+                    onPress={() => {
+                        navigation.navigate("Login");
+                    }}
                 > 
-                    Don't Have An Account Yet? <Text style={{ color: '#1338CF', fontWeight: '400' }}>Sign Up Below!</Text> 
+                    Already Have An Account? <Text style={{ color: '#1338CF', fontWeight: '400' }}>Log In Below!</Text> 
                 </Text>
                 <TouchableOpacity
                     style={{
@@ -150,17 +184,17 @@ export default function Login({ navigation }) {
                         borderRadius: 6,
                     }}
                     onPress={() => {
-                    navigation.navigate("Signup");
+                    navigation.navigate("Login");
                     }}
                 >
-                    <Text style={{ color: "white", fontWeight: "600"}}>Sign Up</Text>
+                    <Text style={{ color: "white", fontWeight: "600"}}>Login</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
 }
 
-// TODO: COLORS
+
 const styles = StyleSheet.create({
     input: {
         height: 40,
@@ -176,3 +210,4 @@ const styles = StyleSheet.create({
         padding: 10,
     },
   });
+  

@@ -1,17 +1,17 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import ENV from '../.env.js';
 
 // init Firebase
 const firebaseConfig = {
-  apiKey: 'AIzaSyC7RkpXITBZFim3xyvf75e_6J3I7qdKMLk',
-  authDomain: 'toodaloo-a1d58.firebaseapp.com',
-//   databaseURL: 'toodaloo-a1d58',
-  projectId: 'toodaloo-a1d58',
-  storageBucket: 'toodaloo-a1d58.firebasestorage.app',
-  messagingSenderId: '451278848160',
-  appId: '1:451278848160:web:3574235e09b8c3fc5009c5',
-  measurementId: 'G-1BWQD005TF',
+  apiKey: ENV.FIREBASE_API_KEY,
+  authDomain: ENV.FIREBASE_AUTH_DOMAIN,
+  projectId: ENV.FIREBASE_PROJECT_ID,
+  storageBucket: ENV.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: ENV.FIREBASE_MESSAGING_SENDER_ID,
+  appId: ENV.FIREBASE_APP_ID,
+  measurementId: ENV.FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
