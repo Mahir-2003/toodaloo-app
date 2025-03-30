@@ -57,7 +57,7 @@ export default function BathroomMap() {
     })
     .then(res => res.json())
     .then(data => {
-        console.log(data);
+        // console.log(data);
         const id = data.map(bathroom => bathroom.id);
         const getAllData = id.map(id => {
         return fetch(`https://public-bathrooms.p.rapidapi.com/api/getById?id=${id}`, {
@@ -119,15 +119,13 @@ export default function BathroomMap() {
       width: '100%',
     },
     cardsContentContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
+      padding: 5
     },
     card: {
       backgroundColor: '#f8f8f8',
-      width: '48%',
+      width: '100%',
       marginBottom: 10,
-      padding: 10,
+      padding: 4,
       borderRadius: 8,
       elevation: 2,
       shadowColor: '#000',
@@ -143,9 +141,9 @@ export default function BathroomMap() {
     },
     titleText: {
         fontWeight: 'bold',
-        fontSize: 14,
-        marginBottom: 5,
-        color: "#1338CF"
+        fontSize: 34,
+        // marginBottom: 15,
+        color: "#FFFFFF"
       }
     // button: {
     //   position: 'absolute',
@@ -181,24 +179,24 @@ export default function BathroomMap() {
           />
         )}
       </MapView>
-      {console.log(bathrooms)}
       <View style={styles.cardsContainer}>
-        {bathrooms.slice(0, 6).map((bathroom) => (
-          <View 
-            key={bathroom.id} 
-            style={styles.card}
-          >
-            <Text style={styles.titleText}>Closest Bathroms to You</Text>
-            <Text style={styles.cardTitle}>{bathroom.name}</Text>
-          </View>
-        ))}
-      </View>
-      
-      <View style={styles.button}>
+        <Text style={styles.headerTitle}>Closest Bathrooms to You</Text>
+        <ScrollView 
+          style={styles.cardsScroll}
+          contentContainerStyle={styles.cardsContentContainer}
+        >
+          {bathrooms.slice(0, 6).map((bathroom, index) => (
+            <View 
+                key={bathroom.id ? bathroom.id : `bathroom-${index}`} 
+                style={styles.card}
+            >
+                <Text style={styles.cardTitle}>{bathroom.name}</Text>
+            </View>
+            ))}
+        </ScrollView>
       </View>
     </View>
   );
-
 }
 
 // import React, { useEffect, useState } from "react";
