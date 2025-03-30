@@ -45,45 +45,57 @@ export default function BathroomMap() {
             return;
         }
 
-        const currentLocation = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-        });
+        try {
+            const currentLocation = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High,
+            });
 
-        setLocation(currentLocation);
+            setLocation(currentLocation);
+            const userCoords = currentLocation.coords;
 
-        const newRegion = {
-            latitude: currentLocation.coords.latitude,
-            longitude: currentLocation.coords.longitude,
-            latitudeDelta: 0.0122,
-            longitudeDelta: 0.0121,
-        };
-        setRegion(newRegion);
+            const newRegion = {
+                latitude: userCoords.latitude,
+                longitude: userCoords.longitude,
+                latitudeDelta: 0.0122,
+                longitudeDelta: 0.0121,
+            };
+            setRegion(newRegion);
 
-        await getBathrooms(currentLocation.coords.latitude, currentLocation.coords.longitude);
+            await getBathrooms(userCoords); // pass coords directly
+
+        } catch (error) {
+            setErrorMsg(`Failed to get location: ${error.message}`);
+            setFetchError(`Failed to get location: ${error.message}`);
+            setIsLoading(false);
+        }
     };
 
     const distanceFromUser = (lat1, lon1, lat2, lon2) => {
-        const R = 3958.8; 
+        const R = 3958.8;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
-        
-        const a = 
+        const a =
           Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
           Math.sin(dLon/2) * Math.sin(dLon/2);
-        
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         const distance = R * c;
-        
-        return distance.toFixed(1); 
+        return distance.toFixed(1);
     };
 
-    const getBathrooms = async (latitude, longitude) => {
+    const getBathrooms = async (userCoords) => {
+        if (!userCoords || userCoords.latitude == null || userCoords.longitude == null) {
+             setFetchError("User location is not available to find nearby bathrooms.");
+             setIsLoading(false);
+             setBathrooms([]);
+             return;
+        }
+
         setIsLoading(true);
         setFetchError(null);
         setBathrooms([]);
 
-        if (!ENV.RAPID_API_HOST || !ENV.RAPID_API_KEY) {
+        if (!ENV || !ENV.RAPID_API_HOST || !ENV.RAPID_API_KEY) {
              setFetchError("API configuration is missing.");
              setIsLoading(false);
              return;
@@ -94,15 +106,20 @@ export default function BathroomMap() {
             "x-rapidapi-key": ENV.RAPID_API_KEY
         };
 
-        try { 
-            const coordinates = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${latitude}&lng=${longitude}&radius=10&page=1&per_page=10`;
-            const coordinates_resp = await fetch(coordinates, { headers });
+        try {
+            const coordinatesUrl = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${userCoords.latitude}&lng=${userCoords.longitude}&radius=10&page=1&per_page=10`;
+            const coordinates_resp = await fetch(coordinatesUrl, { headers });
+
+            if (!coordinates_resp.ok) {
+                throw new Error(`API request failed with status ${coordinates_resp.status}`);
+            }
+
             const data = await coordinates_resp.json();
 
-            if (data.length === 0) {
-                setBathrooms([]);
-                setIsLoading(false);
-                return;
+            if (!Array.isArray(data) || data.length === 0) {
+                 setBathrooms([]);
+                 setIsLoading(false);
+                 return;
             }
 
             const ids = data.map(bathroom => bathroom?.id).filter(id => id != null);
@@ -122,43 +139,47 @@ export default function BathroomMap() {
 
                 if (response.ok) {
                     const bathroomDetail = await response.json();
-                    if (bathroomDetail && typeof bathroomDetail === 'object' && bathroomDetail.id && bathroomDetail.name) {
+
+                    // this was not being done previously, caused issues with markers not being placed and the distance calculations failing
+                    if (bathroomDetail && typeof bathroomDetail === 'object' && bathroomDetail.id && bathroomDetail.name && bathroomDetail.latitude != null && bathroomDetail.longitude != null) {
+
+                        const bathLat = parseFloat(bathroomDetail.latitude);
+                        const bathLon = parseFloat(bathroomDetail.longitude);
                         let dist = null;
-                        if (location && bathroomDetail.latitude && bathroomDetail.longitude) {
-                            const bathLat = parseFloat(bathroomDetail.latitude);
-                            const bathLon = parseFloat(bathroomDetail.longitude);
-                            // if (!isNaN(bathLat) && !isNaN(bathLon)) {
-                            dist = distanceFromUser(
-                                location.coords.latitude, 
-                                location.coords.longitude, 
-                                bathLat, 
-                                bathLon
-                            );
-                            // }
+
+                        // only calculate distance and add bathroom if coordinates are valid numbers!!!
+                        // otherwise will cause nasty errors
+                        if (!isNaN(bathLat) && !isNaN(bathLon)) {
+                             dist = distanceFromUser(
+                                 userCoords.latitude,
+                                 userCoords.longitude,
+                                 bathLat,
+                                 bathLon
+                             );
+
+                             successfullyFetchedBathrooms.push({
+                                id: bathroomDetail.id,
+                                name: bathroomDetail.name,
+                                accessible: bathroomDetail.accessible === 1 || bathroomDetail.accessible === true,
+                                unisex: bathroomDetail.unisex === 1 || bathroomDetail.unisex === true,
+                                changingTable: bathroomDetail.changing_table === 1 || bathroomDetail.changing_table === true,
+                                directions: bathroomDetail.directions || 'N/A',
+                                distance: dist,
+                                latitude: bathLat,
+                                longitude: bathLon,
+                            });
                         }
-                        
-                        successfullyFetchedBathrooms.push({
-                            id: bathroomDetail.id,
-                            name: bathroomDetail.name,
-                            accessible: bathroomDetail.accessible === 1,
-                            unisex: bathroomDetail.unisex === 1,
-                            changingTable: bathroomDetail.changing_table === 1,
-                            directions: bathroomDetail.directions || 'N/A',
-                            distance: dist,
-                            latitude: parseFloat(bathroomDetail.latitude), 
-                            longitude: parseFloat(bathroomDetail.longitude), 
-                        });
+                        // if coords are invalid after parsing, the bathroom is skipped for this iteration
                     }
                 }
                 await delay(REQUEST_DELAY);
             }
             setBathrooms(successfullyFetchedBathrooms);
-            
             if (successfullyFetchedBathrooms.length === 0 && ids.length > 0) {
                  setFetchError("Could not fetch details for any nearby bathrooms.");
             }
 
-        } catch (error) { 
+        } catch (error) {
             setFetchError(`Failed to load bathrooms: ${error.message}`);
             setBathrooms([]);
         } finally {
@@ -230,9 +251,9 @@ export default function BathroomMap() {
             bottom: 0,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: '#0000004D', 
-            zIndex: 10, 
-        }, 
+            backgroundColor: '#0000004D',
+            zIndex: 10,
+        },
         cardText: {
             fontSize: 14,
             color: '#555'
@@ -259,7 +280,7 @@ export default function BathroomMap() {
                 mapType="standard"
                 userInterfaceStyle="light"
                 showsUserLocation={true}
-                onRegionChangeComplete={setRegion}
+                onRegionChangeComplete={setRegion} // may cause excessive refetching, be careful
             >
                 {location && (
                     <Marker
@@ -272,28 +293,28 @@ export default function BathroomMap() {
                     />
                 )}
 
+                 
+                 {/* directly use the numeric lat/lon stored in state, checking they are valid numbers */}
                 {bathrooms.map((bathroom) => {
-                    if (bathroom.latitude && bathroom.longitude) {
-                        const lat = parseFloat(bathroom.latitude);
-                        const lon = parseFloat(bathroom.longitude);
-                        
-                        if (!isNaN(lat) && !isNaN(lon)) {
-                            return (
-                                <Marker
-                                    key={`marker-${bathroom.id}`}
-                                    coordinate={{
-                                        latitude: lat,
-                                        longitude: lon
-                                    }}
-                                    title={bathroom.name}
-                                    description={bathroom.distance ? `${bathroom.distance} miles away` : ''}
-                                    pinColor="red" 
-                                />
-                            );
-                        }
+                    // check if lat and long are valid numbers before rendering, otherwise failure occurs
+                    if (typeof bathroom.latitude === 'number' && !isNaN(bathroom.latitude) &&
+                        typeof bathroom.longitude === 'number' && !isNaN(bathroom.longitude)) {
+                        return (
+                            <Marker
+                                key={`marker-${bathroom.id}`}
+                                coordinate={{
+                                    latitude: bathroom.latitude,
+                                    longitude: bathroom.longitude
+                                }}
+                                title={bathroom.name}
+                                description={bathroom.distance ? `${bathroom.distance} miles away` : ''}
+                                pinColor="red"
+                            />
+                        );
                     }
-        return null;
-    })}
+                    // if coords are not valid numbers in the state, skip rendering this marker
+                    return null;
+                 })}
             </MapView>
 
             <View style={styles.cardsContainer}>
@@ -305,7 +326,9 @@ export default function BathroomMap() {
                 {isLoading ? (
                      <ActivityIndicator size="large" color="#1338CF" style={{ marginTop: 30 }}/>
                 ) : !fetchError && bathrooms.length === 0 ? (
-                    <Text style={styles.infoText}>No bathrooms found nearby or details could not be retrieved.</Text>
+                    <Text style={[styles.infoText, {textAlign: 'center', marginTop: 20}]}>
+                         No bathrooms found nearby or details could not be retrieved.
+                    </Text>
                 ) : (
                     <ScrollView
                         style={styles.cardsScroll}
@@ -314,11 +337,11 @@ export default function BathroomMap() {
                     >
                         {bathrooms.slice(0, 8).map((bathroom) => (
                             <View
-                                key={bathroom.id}
+                                key={`card-${bathroom.id}`}
                                 style={styles.card}
                             >
                                 <Text style={styles.cardTitle}>{bathroom.name}</Text>
-                                {bathroom.distance && (
+                                {bathroom.distance !== null && (
                                     <Text style={styles.infoText}>{bathroom.distance} miles away</Text>
                                 )}
                             </View>
