@@ -15,6 +15,32 @@ export default function UserActivity({ navigation }) {
     })
 
     useEffect(() => {
+
+        const fetchUserData = async () => {
+            setLoading(true);
+            const currentUser = auth.currentUser;
+            
+            if (currentUser) {
+                setUser(currentUser);
+                
+                try {
+                    // Get user document from Firestore
+                    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                    
+                    if (userDoc.exists() && userDoc.data().preferences) {
+                        // Update state with user preferences
+                        setPreferences(userDoc.data().preferences);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user preferences:", error);
+                }
+            }
+            
+            setLoading(false);
+        };
+        
+        fetchUserData();
+
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             setUser(currentUser);
         });
@@ -95,7 +121,7 @@ export default function UserActivity({ navigation }) {
 
                     <View style={styles.preferencesContainer}>
                         <View style={styles.preferenceItem}>
-                            <Text style={styles.preferenceText}>Accessibility</Text>
+                            <Text style={styles.preferenceText}> ♿ Accessibility</Text>
                             <Switch
                                 value={preferences.accessible}
                                 onValueChange={() => togglePreference('accessible')}
@@ -106,7 +132,7 @@ export default function UserActivity({ navigation }) {
                         </View>
 
                         <View style={styles.preferenceItem}>
-                            <Text style={styles.preferenceText}>Changing Table</Text>
+                            <Text style={styles.preferenceText}> 🚼 Changing Table</Text>
                             <Switch
                                 value={preferences.changing_table}
                                 onValueChange={() => togglePreference('changing_table')}
@@ -117,7 +143,7 @@ export default function UserActivity({ navigation }) {
                         </View>
 
                         <View style={styles.preferenceItem}>
-                            <Text style={styles.preferenceText}>Gender Neutral / Unisex</Text>
+                            <Text style={styles.preferenceText}>   ⚥  Gender Neutral / Unisex</Text>
                             <Switch
                                 value={preferences.unisex}
                                 onValueChange={() => togglePreference('unisex')}
