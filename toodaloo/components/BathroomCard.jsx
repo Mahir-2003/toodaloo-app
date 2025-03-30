@@ -1,40 +1,35 @@
 // import * as React from "react";
 // import {Card} from React;
+// import ENV from "../.env.js";
+// import {useState} from React;
 // // import { createNativeStackNavigator } from "@react-navigation/native-stack";
 // import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-// import UserActivity from "../components/UserActivity";
-// import Settings from "../components/Settings";
-// import BathroomMap from "../components/BathroomMap";
+// import UserActivity from "./UserActivity";
+// import Settings from "./Settings";
+// import BathroomMap from "./BathroomMap"
 // import { Ionicons } from "@expo/vector-icons";
 
 // export default function BathroomCard() {
 
-//     const [bio, setBio] = useState({
-//         name: "Mascot Name",
-//         quote: "Some inspiring quote...",
-//         imgSrc: undefined
+//     const [id, setId] = useState({
+//         id: 12345
 //     });
 
-
 //     useEffect(() => {
-//         for()
-        
-//         fetch("https://public-bathrooms.p.rapidapi.com/api/getById?={id", {
+//         fetch(`https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${latitude}&lng=${longitude}&radius=10&page=1&per_page=10`) ({
 //             headers: {
-//                 "x-rapidapi-host" : "public-bathrooms.p.rapidapi.com",
-//                 "x-rapidapi-key" : "d74c5bf05cmshddf42ab510a1742p11bf65jsne34a4dc30863"
+//                 "x-rapidapi-host": ENV.RAPID_API_HOST,
+//                 "x-rapidapi-key": ENV.RAPID_API_KEY
 //             }
 //         })
 //         .then(res => res.json())
-//         .then(data => setBio(data))
+//         .then(data => setId((data.map(bathroom => bathroom.id))))
 //     }, []);
 
 
 //     return (
 //         <Card>
-//             {
-//                 bio.imgSrc ? <Image style={{width: 250, height: 250}} source={{uri: bio.imgSrc}}/> : <></>
-//             }
+            
 //             <Text style={{fontSize: 48}}>{bio.name}</Text>
 //             <Text style={{fontSize: 24}}>{bio.quote}</Text>
 //         </Card>
