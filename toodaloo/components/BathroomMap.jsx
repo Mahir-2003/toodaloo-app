@@ -9,6 +9,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 export default function BathroomMap() {
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
+    //dont worry these are random coordinates
     const [region, setRegion] = useState({
         latitude: 37.78825,
         longitude: -122.4324,
@@ -61,6 +62,22 @@ export default function BathroomMap() {
         await getBathrooms(currentLocation.coords.latitude, currentLocation.coords.longitude);
     };
 
+    const distanceFromUser = (lat1, lon1, lat2, lon2) => {
+        const R = 3958.8; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+        
+        return distance.toFixed(1); 
+    };
+
     const getBathrooms = async (latitude, longitude) => {
         setIsLoading(true);
         setFetchError(null);
@@ -78,18 +95,9 @@ export default function BathroomMap() {
         };
 
         try { 
-            const coordsUrl = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${latitude}&lng=${longitude}&radius=10&page=1&per_page=10`;
-            const responseByCoords = await fetch(coordsUrl, { headers });
-
-            if (!responseByCoords.ok) {
-                throw new Error(`Failed to fetch bathroom list: ${responseByCoords.status}`);
-            }
-
-            const data = await responseByCoords.json();
-
-            if (!Array.isArray(data)) {
-                throw new Error("Unexpected data format from nearby bathrooms API.");
-            }
+            const coordinates = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${latitude}&lng=${longitude}&radius=10&page=1&per_page=10`;
+            const coordinates_resp = await fetch(coordinates, { headers });
+            const data = await coordinates_resp.json();
 
             if (data.length === 0) {
                 setBathrooms([]);
@@ -110,33 +118,55 @@ export default function BathroomMap() {
 
             for (const id of ids) {
                 const detailUrl = `https://public-bathrooms.p.rapidapi.com/api/getById?id=${id}`;
-
                 const response = await fetch(detailUrl, { headers });
 
                 if (response.ok) {
-                    const bathroomData = await response.json();
-                    if (bathroomData && typeof bathroomData === 'object' && bathroomData.id && bathroomData.name) {
+                    const bathroomDetail = await response.json();
+                    if (bathroomDetail && typeof bathroomDetail === 'object' && bathroomDetail.id && bathroomDetail.name) {
+                        let dist = null;
+                        if (location && bathroomDetail.latitude && bathroomDetail.longitude) {
+                            const bathLat = parseFloat(bathroomDetail.latitude);
+                            const bathLon = parseFloat(bathroomDetail.longitude);
+                            
+                            if (!isNaN(bathLat) && !isNaN(bathLon)) {
+                                dist = distanceFromUser(
+                                    location.coords.latitude, 
+                                    location.coords.longitude, 
+                                    bathLat, 
+                                    bathLon
+                                );
+                            }
+                        }
+                        
                         successfullyFetchedBathrooms.push({
-                           id: bathroomData.id,
-                           name: bathroomData.name,
-                           accessible: bathroomData.accessible === 1,
-                           unisex: bathroomData.unisex === 1,
-                           changingTable: bathroomData.changing_table === 1,
-                           directions: bathroomData.directions || 'N/A'
+                            id: bathroomDetail.id,
+                            name: bathroomDetail.name,
+                            accessible: bathroomDetail.accessible === 1,
+                            unisex: bathroomDetail.unisex === 1,
+                            changingTable: bathroomDetail.changing_table === 1,
+                            directions: bathroomDetail.directions || 'N/A',
+                            distance: dist,
+                            latitude: parseFloat(bathroomDetail.latitude), 
+                            longitude: parseFloat(bathroomDetail.longitude), 
                         });
                     }
                 }
                 await delay(REQUEST_DELAY);
             }
-
-            setBathrooms(successfullyFetchedBathrooms);
-
-            if (successfullyFetchedBathrooms.length === 0 && ids.length > 0) {
-                 setFetchError("Could not fetch details for any nearby bathrooms.");
-            }
+            
+            const sortedBathrooms = [...successfullyFetchedBathrooms].sort((a, b) => {
+                if (a.distance && b.distance) {
+                    return parseFloat(a.distance) - parseFloat(b.distance);
+                }});
+            
+            setBathrooms(sortedBathrooms);
+            
+            // if (sortedBathrooms.length === 0 && ids.length > 0) {
+            //      setFetchError("Could not fetch details for any nearby bathrooms.");
+            // }
 
         } catch (error) { 
-            setFetchError(`Failed to load bathrooms: ${error.message}`);
+            // setFetchError(`Failed to load bathrooms: ${error.message}`);
             setBathrooms([]);
         } finally {
             setIsLoading(false);
@@ -146,7 +176,6 @@ export default function BathroomMap() {
     useEffect(() => {
         getUserLocation();
     }, []);
-
 
     const styles = StyleSheet.create({
         container: {
@@ -161,17 +190,12 @@ export default function BathroomMap() {
             left: 0,
             right: 0,
             height: '35%',
-            backgroundColor: 'rgba(255, 255, 255, 0.97)',
+            backgroundColor: '#f7f7f7',
             zIndex: 2,
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
             paddingTop: 10,
             paddingHorizontal: 10
-            // shadowColor: '#000',
-            // shadowOffset: { width: 0, height: -2 },
-            // shadowOpacity: 0.1,
-            // shadowRadius: 4,
-            // elevation: 8,
         },
         cardsScroll: {
             flex: 1,
@@ -200,10 +224,25 @@ export default function BathroomMap() {
             color: "#333",
             marginBottom: 4,
         },
+        infoText: {
+            fontSize: 14,
+            color: "#1338CF",
+            marginBottom: 5,
+        },
+        loadingContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#0000004D', 
+            zIndex: 10, 
+        }, 
         cardText: {
             fontSize: 14,
-            color: '#555',
-            // lineHeight: 20,
+            color: '#555'
         },
         titleText: {
             fontWeight: 'bold',
@@ -212,24 +251,10 @@ export default function BathroomMap() {
             color: "#1338CF",
             textAlign: 'center',
         },
-        // loadingContainer: {
-        //     position: 'absolute',
-        //     top: 0,
-        //     left: 0,
-        //     right: 0,
-        //     bottom: 0,
-        //     justifyContent: 'center',
-        //     alignItems: 'center',
-        //     backgroundColor: 'rgba(0,0,0,0.3)',
-        //     zIndex: 10,
-        // },
-        infoText: {
-             textAlign: 'center',
-             marginTop: 25,
-             paddingHorizontal: 15,
-            //  fontStyle: 'italic',
-             fontSize: 15,
-             color: '#666',
+        errorText: {
+            color: 'red',
+            textAlign: 'center',
+            marginTop: 15
         }
     });
 
@@ -253,6 +278,29 @@ export default function BathroomMap() {
                         pinColor="blue"
                     />
                 )}
+
+                {bathrooms.map((bathroom) => {
+                    if (bathroom.latitude && bathroom.longitude) {
+                        const lat = parseFloat(bathroom.latitude);
+                        const lon = parseFloat(bathroom.longitude);
+                        
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            return (
+                                <Marker
+                                    key={`marker-${bathroom.id}`}
+                                    coordinate={{
+                                        latitude: lat,
+                                        longitude: lon
+                                    }}
+                                    title={bathroom.name}
+                                    description={bathroom.distance ? `${bathroom.distance} miles away` : ''}
+                                    pinColor="red" 
+                                />
+                            );
+                        }
+                    }
+        return null;
+    })}
             </MapView>
 
             <View style={styles.cardsContainer}>
@@ -271,12 +319,15 @@ export default function BathroomMap() {
                         contentContainerStyle={styles.cardsContentContainer}
                         showsVerticalScrollIndicator={true}
                     >
-                        {bathrooms.slice(0, 6).map((bathroom) => (
+                        {bathrooms.slice(0, 8).map((bathroom) => (
                             <View
                                 key={bathroom.id}
                                 style={styles.card}
                             >
-                                <Text style={styles.cardTitle}>{bathroom.name} </Text>
+                                <Text style={styles.cardTitle}>{bathroom.name}</Text>
+                                {bathroom.distance && (
+                                    <Text style={styles.infoText}>{bathroom.distance} miles away</Text>
+                                )}
                             </View>
                         ))}
                     </ScrollView>

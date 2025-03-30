@@ -5,7 +5,6 @@ import TopNavbar from "./components/TopNavbar";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
 import { Ionicons } from "@expo/vector-icons";
 
 const Stack = createStackNavigator();

@@ -1,13 +1,11 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-// import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import UserActivity from "../components/UserActivity";
 import Settings from "../components/Settings";
 import BathroomMap from "../components/BathroomMap";
 
 import { Ionicons } from "@expo/vector-icons";
-// const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TopNavbar() {
@@ -45,18 +43,6 @@ function TopNavbar() {
         tabBarActiveTintColor: '#ffffff', 
         tabBarInactiveTintColor: '#f0f0f0'
       })}
-      // barStyle={{
-      //   backgroundColor: colors.primary,
-      //   marginBottom: -20,
-      //   elevation: 2,
-      //   shadowColor: "#000",
-      //   shadowOffset: {
-      //     width: 0,
-      //     height: 1,
-      //   },
-      //   shadowOpacity: 0.25,
-      //   shadowRadius: 3.84,
-      // }}
     >
       <Tab.Screen name="Map" component={BathroomMap} />
       <Tab.Screen name="User" component={UserActivity} />
