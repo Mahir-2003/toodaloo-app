@@ -1,6 +1,6 @@
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc, 
     getDocs, query, where, arrayUnion, arrayRemove} from 'firebase/firestore';
-import { db, auth } from './firebaseConfig';
+import { db, auth, increment } from './firebaseConfig';
 
 // create new review
 export const createReview = async (reviewData) => {
@@ -137,7 +137,7 @@ export const dislikeReview = async (reviewID) => {
     try {
         const reviewRef = doc(db, 'reviews', reviewID);
         await updateDoc(reviewRef, {
-            dislikes: decrement(1)
+            dislikes: increment(-1)
         });
     } catch (error) {
         console.log('Error disliking review', error);

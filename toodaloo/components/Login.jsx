@@ -121,7 +121,7 @@ export default function Login({ navigation }) {
                         handleLogin();
                     }}
                 />
-                <View style={{ marginBottom: 15 }} />
+                <View style={{ marginBottom: 75 }} />
                 <Text
                     style={{
                     fontSize: 14,
