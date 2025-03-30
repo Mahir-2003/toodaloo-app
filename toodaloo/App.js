@@ -7,6 +7,7 @@ import Signup from "./components/Signup";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
 import BathroomCard from "./components/BathroomCard";
+import AddReview from "./components/AddReview";
 
 const Stack = createStackNavigator();
 
@@ -19,6 +20,7 @@ function App() {
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Signup" component={Signup} />
           <Stack.Screen name="BathroomCard" component={BathroomCard} />
+          <Stack.Screen name="AddReview" component={AddReview} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

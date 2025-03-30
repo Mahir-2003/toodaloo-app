@@ -1,33 +1,152 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, ActivityIndicator, Card } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { getToiletReviews } from '../utils/reviewsManager';
+import { getToiletReviews, likeReview, dislikeReview } from '../utils/reviewsManager';
 
 export default function BathroomCard({ route, navigation }) {
     const { bathroom } = route.params;
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchReviews = async () => {
-            try {
-                const bathroomReviews = await getToiletReviews(bathroom.id);
-                setReviews(bathroomReviews);
-            } catch (error) {
-                console.log("Error fetching reviews:", error);
-            } finally {
-                setLoading(false);
-            }
+    // Create a reusable function for fetching reviews
+    const fetchReviews = useCallback(async () => {
+        try {
+            setLoading(true);
+            const bathroomReviews = await getToiletReviews(bathroom.id);
+            setReviews(bathroomReviews);
+        } catch (error) {
+            console.log("Error fetching reviews:", error);
+        } finally {
+            setLoading(false);
         }
-        fetchReviews();
     }, [bathroom.id]);
+
+    // Initial fetch
+    useEffect(() => {
+        fetchReviews();
+    }, [fetchReviews]);
+
+    // Listen for when returning from AddReview screen
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchReviews();
+        });
+        
+        return unsubscribe;
+    }, [navigation, fetchReviews]);
 
     const openMapsDirections = () => {
         const url = `http://maps.apple.com/?daddr=${bathroom.latitude},${bathroom.longitude}`;
         Linking.openURL(url);
     }
+
+    const handleLikeReview = async (reviewId) => {
+        if (!auth.currentUser) {
+            Alert.alert(
+                "Login Required",
+                "You must be logged in to like reviews.",
+                [
+                    {
+                        text: "Log In",
+                        onPress: () => navigation.navigate("Login")
+                    },
+                    {
+                        text: "Cancel",
+                        style: "cancel"
+                    }
+                ]
+            );
+            return;
+        }
+        
+        try {
+            // Update reviews state optimistically
+            const updatedReviews = reviews.map(review => {
+                if (review.id === reviewId) {
+                    const isLiked = review.currentUserLiked || false;
+                    const isDisliked = review.currentUserDisliked || false;
+                    
+                    return {
+                        ...review,
+                        likes: isLiked ? (review.likes - 1) : (review.likes + 1),
+                        dislikes: isDisliked ? (review.dislikes - 1) : review.dislikes,
+                        currentUserLiked: !isLiked,
+                        currentUserDisliked: isDisliked ? false : review.currentUserDisliked
+                    };
+                }
+                return review;
+            });
+            
+            // Update UI immediately
+            setReviews(updatedReviews);
+            
+            // Make the API call
+            await likeReview(reviewId);
+            
+            // Refresh reviews to ensure data consistency
+            fetchReviews();
+            
+        } catch (error) {
+            console.error("Error liking review:", error);
+            // Revert to original state if error occurs
+            fetchReviews();
+        }
+    };
+
+    const handleDislikeReview = async (reviewId) => {
+        if (!auth.currentUser) {
+            Alert.alert(
+                "Login Required",
+                "You must be logged in to dislike reviews.",
+                [
+                    {
+                        text: "Log In",
+                        onPress: () => navigation.navigate("Login")
+                    },
+                    {
+                        text: "Cancel",
+                        style: "cancel"
+                    }
+                ]
+            );
+            return;
+        }
+        
+        try {
+            // Update reviews state optimistically
+            const updatedReviews = reviews.map(review => {
+                if (review.id === reviewId) {
+                    const isLiked = review.currentUserLiked || false;
+                    const isDisliked = review.currentUserDisliked || false;
+                    
+                    return {
+                        ...review,
+                        likes: isLiked ? (review.likes - 1) : review.likes,
+                        dislikes: isDisliked ? (review.dislikes - 1) : (review.dislikes + 1),
+                        currentUserLiked: isLiked ? false : review.currentUserLiked,
+                        currentUserDisliked: !isDisliked
+                    };
+                }
+                return review;
+            });
+            
+            // Update UI immediately
+            setReviews(updatedReviews);
+            
+            // Make the API call
+            await dislikeReview(reviewId);
+            
+            // Refresh reviews to ensure data consistency
+            fetchReviews();
+            
+        } catch (error) {
+            console.error("Error disliking review:", error);
+            // Revert to original state if error occurs
+            fetchReviews();
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -69,7 +188,7 @@ export default function BathroomCard({ route, navigation }) {
                     <View style={styles.infoRow}>
                         <View style={styles.featureContainer}>
                             <Text style={styles.featureIcon}>
-                                {bathroom.accesible ? <Ionicons name="checkbox" size={20} /> : <Ionicons name="close-circle" size={20}/>}
+                                {bathroom.accesible ? <Ionicons name="checkbox" size={20} /> : <Ionicons name="close-circle" size={20} />}
                             </Text>
                             <Text style={styles.featureText}>
                                 {bathroom.accessible ? 'Accessible' : 'Not Accessible'}
@@ -78,7 +197,7 @@ export default function BathroomCard({ route, navigation }) {
 
                         <View style={styles.featureContainer}>
                             <Text style={styles.featureIcon}>
-                                 {bathroom.changingTable ? <Ionicons name="checkbox" size={20} /> : <Ionicons name="close-circle" size={20}/>}
+                                {bathroom.changingTable ? <Ionicons name="checkbox" size={20} /> : <Ionicons name="close-circle" size={20} />}
                             </Text>
                             <Text style={styles.featureText}>
                                 {bathroom.changingTable ? 'Changing Table' : 'No Changing Table'}
@@ -89,7 +208,7 @@ export default function BathroomCard({ route, navigation }) {
                     <View style={styles.infoRow}>
                         <View style={styles.featureContainer}>
                             <Text style={styles.featureIcon}>
-                                 {bathroom.unisex ? <Ionicons name="checkbox" size={20} /> : <Ionicons name="close-circle" size={20}/>}
+                                {bathroom.unisex ? <Ionicons name="checkbox" size={20} /> : <Ionicons name="close-circle" size={20} />}
                             </Text>
                             <Text style={styles.featureText}>
                                 {bathroom.unisex ? 'Gender Neutral' : 'Gender Specific'}
@@ -126,15 +245,41 @@ export default function BathroomCard({ route, navigation }) {
                         reviews.map(review => (
                             <View key={review.id} style={styles.reviewCard}>
                                 <Text style={styles.reviewAuthor}>{review.userName || 'Anonymous'}</Text>
-                                <Text style={styles.reviewRating}>
-                                    Rating: {review.rating} ★
-                                </Text>
-                                <Text style={styles.reviewText}>{review.comment}</Text>
+
+                                <View style={styles.ratingContainer}>
+                                    <TouchableOpacity
+                                        style={styles.ratingButton}
+                                        onPress={() => likeReview(review.id)}
+                                    >
+                                        <Ionicons name="thumbs-up" size={16} color="#1338CF" />
+                                        <Text style={styles.ratingCount}>{review.likes || 0}</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.ratingButton}
+                                        onPress={() => dislikeReview(review.id)}
+                                    >
+                                        <Ionicons name="thumbs-down" size={16} color="#ff6b6b" />
+                                        <Text style={styles.ratingCount}>{review.dislikes || 0}</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                <Text style={styles.reviewText}>{review.text}</Text>
                             </View>
                         ))
                     ) : (
                         <Text style={styles.noReviewsText}>No reviews yet.</Text>
                     )}
+                    <TouchableOpacity
+                        style={{
+                            position: "absolute",
+                            right: 10,
+                            padding: 8,
+                        }}
+                        onPress={() => navigation.navigate('AddReview', { bathroom })}
+                    >
+                        <Ionicons name="add-circle" size={25} />
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -177,6 +322,25 @@ const styles = StyleSheet.create({
     },
     map: {
         ...StyleSheet.absoluteFillObject,
+    },
+    ratingContainer: {
+        flexDirection: 'row',
+        marginVertical: 8,
+    },
+    ratingButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 16,
+        marginRight: 12,
+    },
+    ratingCount: {
+        marginLeft: 5,
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#555',
     },
     detailsContainer: {
         backgroundColor: '#fff',

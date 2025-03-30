@@ -159,7 +159,7 @@ export default function BathroomMap({ navigation }) {
     try {
       const coordinatesUrl = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${userCoords.latitude}&lng=${userCoords.longitude}&radius=10&page=1&per_page=10`;
       // for later maybe
-      // const advCoordinatesUrl = `https://public-bathrooms.p.rapidapi.com/api/getByCords?lat=${userCoords.latitude}&lng=${userCoords.longitude}&radius=10&page=1&per_page=10&
+      // const advCoordinatesUrl = `https://public-bathrooms.p.rapidapi.com/api/getByCordsAdv?lat=${userCoords.latitude}&lng=${userCoords.longitude}&radius=10&page=1&per_page=10&
       // wheelchair_param=${filters.accessible ? 1 : 0}&changing_table_param=${filters.changing_table ? 1 : 0}&unisex_param=${filters.unisex ? 1 : 0}`;
 
       const coordinates_resp = await fetch(coordinatesUrl, { headers });
