@@ -359,7 +359,7 @@ export default function BathroomMap() {
             contentContainerStyle={styles.cardsContentContainer}
             showsVerticalScrollIndicator={true}
           >
-            {filteredBathrooms.slice(0, 10).map((bathroom) => (
+            {filteredBathrooms.slice(0, 8).map((bathroom) => (
               <View
                 key={`card-${bathroom.id}`}
                 style={styles.card}

@@ -87,18 +87,25 @@ export default function UserActivity({ navigation }) {
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>My Profile</Text>
                 </View>
-                <View style={styles.content}>
-                    <Text style={styles.infoText}>
-                        Please log in to view and manage your profile
-                    </Text>
-                    <View style={{ marginBottom: 30 }} />
-                    <View style={styles.buttonContainer}>
-                        <MyButton
-                            text="Log In"
-                            style={styles.loginButton}
-                            textStyle={styles.loginButtonText}
-                            onPress={() => navigation.navigate("Login")}
-                        />
+                <View style={styles.centeredContent}>
+                    <View style={styles.loginCard}>
+                        <Text style={styles.loginTitle}>Welcome to toodaloo!</Text>
+                        <Text style={styles.loginSubtitle}>
+                            Please sign in to view your profile, save preferences, and track your bathroom history.
+                        </Text>
+                        <View style={{ marginBottom: 15 }} />
+                        <View style={styles.buttonContainer}>
+                            <MyButton
+                                text="Log In"
+                                style={styles.loginButton}
+                                textStyle={styles.loginButtonText}
+                                onPress={() => navigation.navigate("Login")}
+                            />
+                            <View style={{ marginBottom: 15 }} />
+                            <Text style={styles.signupText}>
+                                Don't have an account? <Text style={styles.signupLink} onPress={() => navigation.navigate("Signup")}>Sign up</Text>
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </SafeAreaView>
@@ -222,20 +229,62 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333',
     },
+    centeredContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    loginCard: {
+        backgroundColor: 'white',
+        borderRadius: 15,
+        padding: 24,
+        width: '90%',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    loginTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#1338CF',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    loginSubtitle: {
+        fontSize: 16,
+        color: '#555',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 20,
+    },
     loginButton: {
         backgroundColor: '#1338CF',
-        width: '80%',
-        height: 40,
+        width: 220,
+        height: 48,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 6,
+        borderRadius: 8,
     },
     loginButtonText: {
         color: 'white',
         fontWeight: '600',
+        fontSize: 16,
     },
     buttonContainer: {
         alignItems: 'center',
         width: '100%',
+    },
+    signupText: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 5,
+    },
+    signupLink: {
+        color: '#1338CF',
+        fontWeight: '500',
     },
 });

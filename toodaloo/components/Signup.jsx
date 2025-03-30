@@ -138,7 +138,7 @@ export default function Signup({ navigation }) {
             <View style={{ marginBottom: 30 }} />
             <View style={{ flexDirection: "column", width: "80%" }}>
                 <MyButton
-                    text={loading ? 'Signing in...' : 'Sign In'}
+                    text={loading ? 'Signing up...' : 'Sign Up'}
                     style={{
                         width: "100%",
                         height: 40,
@@ -153,7 +153,7 @@ export default function Signup({ navigation }) {
                         handleSignup();
                     }}
                 />
-                <View style={{ marginBottom: 10 }} />
+                <View style={{ marginBottom: 75 }} />
                 <Text
                     style={{
                     fontSize: 14,
