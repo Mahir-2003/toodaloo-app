@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Switch } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../utils/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { MyButton } from './MyButton';
+import { Ionicons } from "@expo/vector-icons";
 
 export default function UserActivity({ navigation }) {
     const [user, setUser] = useState(null);
@@ -82,9 +83,14 @@ export default function UserActivity({ navigation }) {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>My Profile</Text>
+                <Text style={styles.headerTitle}>My User Activity</Text>
             </View>
 
+            <ScrollView 
+                contentContainerStyle={{ 
+                    flexGrow: 1
+                }}
+              >
             <View style={styles.content}>
                 <View style={styles.sectionContainer}>
                     <Text style={styles.sectionTitle}>My Bathroom Preferences</Text>
@@ -128,7 +134,58 @@ export default function UserActivity({ navigation }) {
                         </View>
                     </View>
                 </View>
+
             </View>
+
+            <View style={styles.content}>
+                <View style={styles.sectionContainer}>
+                    <Text style={styles.sectionTitle}>My Achievements</Text>
+                    <Text style={styles.sectionSubtitle}>
+                        Earn more badges by posting reviews on the bathrooms you visit!
+                    </Text>
+                
+                    <View style={{
+                        height: 70,
+                        width: "100%",
+                        backgroundColor: '#1338CF',
+                        borderRadius: 15,          
+                        paddingHorizontal: 5,
+                        alignItems: 'flex-start',
+                        justifyContent: 'center',
+                        marginBottom: 15
+                        }}>
+                        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 5, marginLeft: 5}}>
+                            Shy Guy
+                        </Text>
+                        <Text style={{ color: 'white', fontSize: 12, marginLeft: 5}}>
+                            Reviewed one bathroom on the app
+                        </Text>
+
+                        <Ionicons name="glasses-outline" size={43} color="white" style={{position: "absolute", right: 20, bottom: 2}}/>
+                    </View>
+
+                    <View style={{
+                        height: 70,
+                        width: "100%",
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: 15,          
+                        paddingHorizontal: 5,
+                        alignItems: 'flex-start',
+                        justifyContent: 'center'
+                        }}>
+                        <Text style={{ color: '#000000', fontSize: 16, fontWeight: 'bold', marginBottom: 5, marginLeft: 5}}>
+                            Silent but Deadly (LOCKED)
+                        </Text>
+                        <Text style={{ color: '#333', fontSize: 12, marginLeft: 5}}>
+                            Reviewed 30 bathrooms on the app
+                        </Text>
+
+                        <Ionicons name="bug-outline" size={38} color="black" style={{position: "absolute", right: 25, bottom: 15}}/>
+                    </View>
+                </View>
+            </View>
+
+        </ScrollView>
         </SafeAreaView>
     );
 }
@@ -148,6 +205,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 5,
+        margin: 0
     },
     headerTitle: {
         fontSize: 22,
@@ -155,7 +213,6 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
     content: {
-        flex: 1,
         padding: 16,
     },
     sectionContainer: {
