@@ -127,15 +127,14 @@ export default function BathroomMap() {
                         if (location && bathroomDetail.latitude && bathroomDetail.longitude) {
                             const bathLat = parseFloat(bathroomDetail.latitude);
                             const bathLon = parseFloat(bathroomDetail.longitude);
-                            
-                            if (!isNaN(bathLat) && !isNaN(bathLon)) {
-                                dist = distanceFromUser(
-                                    location.coords.latitude, 
-                                    location.coords.longitude, 
-                                    bathLat, 
-                                    bathLon
-                                );
-                            }
+                            // if (!isNaN(bathLat) && !isNaN(bathLon)) {
+                            dist = distanceFromUser(
+                                location.coords.latitude, 
+                                location.coords.longitude, 
+                                bathLat, 
+                                bathLon
+                            );
+                            // }
                         }
                         
                         successfullyFetchedBathrooms.push({
@@ -153,20 +152,14 @@ export default function BathroomMap() {
                 }
                 await delay(REQUEST_DELAY);
             }
+            setBathrooms(successfullyFetchedBathrooms);
             
-            const sortedBathrooms = [...successfullyFetchedBathrooms].sort((a, b) => {
-                if (a.distance && b.distance) {
-                    return parseFloat(a.distance) - parseFloat(b.distance);
-                }});
-            
-            setBathrooms(sortedBathrooms);
-            
-            // if (sortedBathrooms.length === 0 && ids.length > 0) {
-            //      setFetchError("Could not fetch details for any nearby bathrooms.");
-            // }
+            if (successfullyFetchedBathrooms.length === 0 && ids.length > 0) {
+                 setFetchError("Could not fetch details for any nearby bathrooms.");
+            }
 
         } catch (error) { 
-            // setFetchError(`Failed to load bathrooms: ${error.message}`);
+            setFetchError(`Failed to load bathrooms: ${error.message}`);
             setBathrooms([]);
         } finally {
             setIsLoading(false);
