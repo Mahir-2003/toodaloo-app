@@ -12,5 +12,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     }
-      }
+  },
+    "ios": {
+        "supportsTablet": true,
+        "infoPlist": {
+          "NSLocationWhenInUseUsageDescription": "This app needs access to your location to find bathrooms near you.",
+          "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to find bathrooms near you."
+        }
+      },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
     }
+  }

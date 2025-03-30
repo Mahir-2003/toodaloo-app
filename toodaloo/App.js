@@ -1,25 +1,24 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import BathroomMap from './components/BathroomMap';
-import TopNavbar from './components/TopNavbar';
+import * as React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+// import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import UserActivity from "../toodaloo/components/UserActivity";
+import Settings from "../toodaloo/components/Settings";
+import BathroomMap from "../toodaloo/components/BathroomMap";
+import TopNavbar from "../toodaloo/components/TopNavbar";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-export default function App() {
+import { Ionicons } from "@expo/vector-icons";
+
+function App() {
   return (
-    <View style={styles.container}>
-      <BathroomMap></BathroomMap>
-      <TopNavbar></TopNavbar>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <TopNavbar></TopNavbar>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
-    padding: 600
-  }
-});
+export default App;
+
